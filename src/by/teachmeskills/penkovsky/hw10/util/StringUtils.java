@@ -2,89 +2,95 @@ package by.teachmeskills.penkovsky.hw10.util;
 
 public class StringUtils {
     public static String normalizationString(String inputString) {
-        if (inputString.length() == 0) {
-            return inputString;
-        }
         inputString = inputString.trim();
-        char[] newString = inputString.toCharArray();
-        int count = 1;
-        for (int i = 1; i < newString.length; i++) {
-            if (!(Character.isWhitespace(newString[i - 1]) && Character.isWhitespace(newString[i]))) {
-                newString[count++] = newString[i];
-            }
-        }
-        return new String(newString, 0, count);
+        inputString = inputString.replaceAll("\\s+", " ");
+        return inputString;
     }
 
-    public static String hideBankCard(String bankCard) {
-        int bankCardLength = 16;
-        if (bankCard.length() != bankCardLength) {
+    public static String formatCreditCardNumber(String creditCardNumber) {
+        int creditCardNumberLength = 16;
+        if (creditCardNumber.length() != creditCardNumberLength) {
             throw new IllegalArgumentException("Произошла ошибка! Проверьте введенные данные." +
                     "Минимальный размер номера банковской карты составляет 16 символов.");
         }
-        if (bankCard.length() < 4) {
-            return bankCard;
-        } else {
-            String newbankCardNumber = "";
-            for (int i = 0; i < bankCard.length(); i++) {
-                if (i > 4) {
-                    newbankCardNumber += "*";
-                }
-            }
-            newbankCardNumber += bankCard.substring(bankCard.length() - 4);
-            return newbankCardNumber;
-        }
+        String maskedCreditCardNumber = "**** ** ** " + creditCardNumber.substring(12);
+
+        return maskedCreditCardNumber;
     }
 
-    public static String getAbbreviatedName(String surname, String name, String patronymic) {
-        if (surname.length() == 0 || name.length() == 0) {
+    public static String getAbbreviatedName(String lastName, String firstName, String patronymic) {
+        if (lastName.length() == 0 || firstName.length() == 0) {
             throw new IllegalArgumentException("Уважаемый пользователь! Проверьте введенные данные");
         }
-        if (patronymic.length() != 0) {
-            return surname + " " + name.toUpperCase().charAt(0) + "." + patronymic.toUpperCase().charAt(0) + ".";
-        }
-        return surname + " " + name.toUpperCase().charAt(0) + ".";
+        String initials = firstName.substring(0, 1).toUpperCase() + ". "; // получаем инициал имени
+        String patronymicInitials = patronymic.isEmpty() ? "" : patronymic.substring(0, 1).toUpperCase() + ". "; // получаем инициал отчества, если оно есть
+        return lastName + " " + initials + patronymicInitials;
     }
 
-    public static boolean isBelarussianPassport(String numberOdPassport) {
-        if (numberOdPassport.length() != 9) {
-            throw new IllegalArgumentException("Уважаемый пользователь! Проверьте введенные данные");
-        }
-        char[] charNum = numberOdPassport.toCharArray();
-        if ((charNum[0] >= 'A' && charNum[0] <= 'Z') || (charNum[0] >= 'a' && charNum[0] <= 'z')) {
-            return true;
-        }
-        if ((charNum[1] >= 'A' && charNum[1] <= 'Z') || (charNum[1] >= 'a' && charNum[1] <= 'z')) {
-            return true;
-        }
-        for (int i = 2; i < charNum.length; i++) {
-            if (!Character.isDigit(charNum[i])) {
-                //if (charNum[i] >= '0' || charNum[i] <= '9') {
+    public class PassportUtils {
+        public static final int PASSPORT_SERIES_LENGTH = 2;
+        public static final int PASSPORT_DIGITS_LENGTH = 7;
+        public static final int PASSPORT_NUMBER_LENGTH = PASSPORT_SERIES_LENGTH + PASSPORT_DIGITS_LENGTH;
+
+        public static boolean isBelarussianPassport(String numberOfPassport) {
+            if (numberOfPassport.length() != PASSPORT_NUMBER_LENGTH) {
                 return false;
             }
+            for (int i = 0; i < PASSPORT_SERIES_LENGTH; i++) {
+                if (!Character.isUpperCase(numberOfPassport.charAt(0)) || !Character.isUpperCase(numberOfPassport.charAt(1)) ||
+                        numberOfPassport.charAt(0) < 'A' || numberOfPassport.charAt(0) > 'Z' || numberOfPassport.charAt(1) < 'A' || numberOfPassport.charAt(1) > 'Z') {
+                    return false;
+                }
+            }
+            for (int i = PASSPORT_SERIES_LENGTH; i < PASSPORT_NUMBER_LENGTH; i++) {
+                if (!Character.isDigit(numberOfPassport.charAt(i))) {
+                    return false;
+                }
+            }
+            return true;
         }
-        return true;
     }
 
-    public static boolean isReliablePassword(String password) {
-        if (password.length() < 9) {
-            throw new IllegalArgumentException("Уважаемый пользователь! Пароль не надежен");
+    public static boolean isStrongPassword(String password) {
+        if (password == null || password.length() < 8) {
+            return false;
         }
-        char[] passwordToChar = password.toCharArray();
-        int quantityOfUppercaseLetter = 0;
-        int quantityOfLowerCaseLetter = 0;
-        int quantityOfNumbers = 0;
-
-        for (char c : passwordToChar) {
-            if ((c >= 'A' && c <= 'Z') || (c >= 'А' && c <= 'Я') || c == 'Ё')
-                quantityOfUppercaseLetter++;
-            else if ((c >= 'a' && c <= 'z') || (c >= 'а' && c <= 'я') || c == 'ё')
-                quantityOfLowerCaseLetter++;
-            else if (c >= '0' && c <= '9')
-                quantityOfNumbers++;
+        boolean hasLowerCase = false;
+        boolean hasUpperCase = false;
+        boolean hasDigit = false;
+        for (char c : password.toCharArray()) {
+            if (Character.isLowerCase(c)) {
+                hasLowerCase = true;
+            } else if (Character.isUpperCase(c)) {
+                hasUpperCase = true;
+            } else if (Character.isDigit(c)) {
+                hasDigit = true;
+            }
         }
+        return hasLowerCase && hasUpperCase && hasDigit;
+    }
 
-        return quantityOfNumbers >= 1 && quantityOfLowerCaseLetter >= 1 && quantityOfUppercaseLetter >= 1;
+    public static boolean isValidEmail(String email) {
+        if (email.contains(" ")) {
+            return false;
+        }
+        int atSymbolCount = 0;
+        for (int i = 0; i < email.length(); i++) {
+            if (email.charAt(i) == '@') {
+                atSymbolCount++;
+            }
+        }
+        if (atSymbolCount != 1) {
+            return false;
+        }
+        int atSymbolIndex = email.indexOf('@');
+        if (atSymbolIndex == 0 || atSymbolIndex == email.length() - 1) {
+            return false;
+        }
+        if (email.charAt(atSymbolIndex - 1) == email.charAt(atSymbolIndex + 1)) {
+            return false;
+        }
+        return true;
     }
 }
 
