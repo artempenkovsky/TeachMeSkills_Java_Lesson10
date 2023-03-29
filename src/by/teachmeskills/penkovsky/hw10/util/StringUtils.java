@@ -22,9 +22,15 @@ public class StringUtils {
         if (lastName.length() == 0 || firstName.length() == 0) {
             throw new IllegalArgumentException("Уважаемый пользователь! Проверьте введенные данные");
         }
-        String initials = firstName.substring(0, 1).toUpperCase() + ". "; // получаем инициал имени
-        String patronymicInitials = patronymic.isEmpty() ? "" : patronymic.substring(0, 1).toUpperCase() + ". "; // получаем инициал отчества, если оно есть
-        return lastName + " " + initials + patronymicInitials;
+        String initials = "";
+        if (!patronymic.isEmpty()) {
+            initials = " " + patronymic.charAt(0) + ".";
+        }
+        String fullName = lastName + " " + firstName.charAt(0) + ".";
+        if (!initials.isEmpty()) {
+            fullName += initials;
+        }
+        return fullName;
     }
 
     public class PassportUtils {
@@ -37,13 +43,14 @@ public class StringUtils {
                 return false;
             }
             for (int i = 0; i < PASSPORT_SERIES_LENGTH; i++) {
-                if (!Character.isUpperCase(numberOfPassport.charAt(0)) || !Character.isUpperCase(numberOfPassport.charAt(1)) ||
-                        numberOfPassport.charAt(0) < 'A' || numberOfPassport.charAt(0) > 'Z' || numberOfPassport.charAt(1) < 'A' || numberOfPassport.charAt(1) > 'Z') {
+                char c = numberOfPassport.charAt(i);
+                if (c < 'A' || c > 'Z') {
                     return false;
                 }
             }
             for (int i = PASSPORT_SERIES_LENGTH; i < PASSPORT_NUMBER_LENGTH; i++) {
-                if (!Character.isDigit(numberOfPassport.charAt(i))) {
+                char c = numberOfPassport.charAt(i);
+                if (c < '0' || c > '9') {
                     return false;
                 }
             }
@@ -66,8 +73,11 @@ public class StringUtils {
             } else if (Character.isDigit(c)) {
                 hasDigit = true;
             }
+            if (hasLowerCase && hasUpperCase && hasDigit) {
+                return true;
+            }
         }
-        return hasLowerCase && hasUpperCase && hasDigit;
+        return false;
     }
 
     public static boolean isValidEmail(String email) {
@@ -88,7 +98,7 @@ public class StringUtils {
             return false;
         }
         if (email.charAt(atSymbolIndex - 1) == email.charAt(atSymbolIndex + 1)) {
-            return false;
+            return true;
         }
         return true;
     }
